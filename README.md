@@ -116,13 +116,14 @@ Before deployment:
 
 Use `backend` as the hosted web service root. Install dependencies with
 `npm install` (or `npm ci` for a lockfile-based installation) and start the service
-with `npm start`. The current dependencies support Node.js 18 or newer.
+with `npm start`. The backend declares Node.js `22.x`.
 
 Configure these environment variables in the hosting dashboard:
 
 - `NODE_ENV=production`
 - `PORT` (normally supplied by the hosting platform)
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD`
+- `DB_SSL` and `DB_SSL_CA_PATH`
 - `SESSION_SECRET` set to a strong, unique production value
 - `SESSION_STORE=mysql`
 - `FRONTEND_URL=https://nfc-business-matching.netlify.app`
@@ -172,6 +173,8 @@ DB_PORT=3306
 DB_NAME=<database name>
 DB_USER=<database username>
 DB_PASSWORD=<database password>
+DB_SSL=true
+DB_SSL_CA_PATH=/etc/secrets/aiven-ca.pem
 SESSION_SECRET=<strong random secret>
 SESSION_STORE=mysql
 FRONTEND_URL=https://nfc-business-matching.netlify.app
@@ -184,6 +187,14 @@ requests; it fails instead of falling back to MemoryStore when MySQL is unavaila
 The shared database pool uses at most 10 connections and a 10-second connection
 timeout. Render shutdown signals stop new HTTP connections and close the session
 store and pool, with a 10-second maximum shutdown window.
+
+For Aiven MySQL, add its CA certificate to Render as a Secret File named
+`aiven-ca.pem`. Render exposes that file at `/etc/secrets/aiven-ca.pem`; its contents
+come from Aiven's CA certificate field. Set `DB_SSL=true` and
+`DB_SSL_CA_PATH=/etc/secrets/aiven-ca.pem`. The backend loads the certificate into
+the shared application/session pool and keeps TLS certificate verification enabled.
+Startup fails if SSL is enabled without a readable, non-empty CA file. Local XAMPP
+continues using `DB_SSL=false` and does not require a certificate.
 
 Render will eventually provide a URL similar to
 `https://nfc-business-matching-api.onrender.com`. After the real URL exists, set
