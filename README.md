@@ -153,6 +153,24 @@ Production therefore has no MemoryStore fallback.
 Some browsers or privacy modes may block cross-site cookies; final authentication
 testing must be performed against the actual HTTPS frontend and backend domains.
 
+### Production database initialization
+
+After configuring the target database and its SSL variables, run the utilities
+intentionally from `backend`:
+
+```bash
+npm run db:setup
+npm run db:seed
+npm run db:verify
+```
+
+`db:setup` only creates missing tables and applies safe missing-column migrations
+inside the database selected by `DB_NAME`; it does not create, drop, rename, clear,
+or switch databases. The hosted database must already exist. `db:seed` remains a
+separate, idempotent demo-data operation and should be run only when demo records
+are actually wanted. `db:reset` is strictly development-only and must never be run
+against Aiven or any production database.
+
 ## Deploy Backend to Render
 
 Create a normal Render Node.js Web Service with these settings:

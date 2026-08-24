@@ -1,6 +1,3 @@
-CREATE DATABASE IF NOT EXISTS nfc_business_matching CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE nfc_business_matching;
-
 CREATE TABLE IF NOT EXISTS users (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   username VARCHAR(100) NOT NULL,

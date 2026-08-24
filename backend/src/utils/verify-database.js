@@ -2,7 +2,7 @@ import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import pool from '../config/database.js';
 
-const expectedTables = ['companies', 'company_saves', 'nfc_tags', 'users', 'visits'];
+const requiredTables = ['companies', 'company_saves', 'nfc_tags', 'users', 'visits'];
 
 try {
   const [tableRows] = await pool.query('SHOW TABLES');
@@ -27,12 +27,14 @@ try {
     ['visits', 'nfc_tag_id'],
   );
 
-  const tablesMatch = JSON.stringify(tables) === JSON.stringify(expectedTables);
+  const missingTables = requiredTables.filter((table) => !tables.includes(table));
+  const requiredTablesPresent = missingTables.length === 0;
   const adminPasswordValid = Boolean(admin) && await bcrypt.compare('admin123', admin.password_hash);
 
   console.log({
     tables,
-    tablesMatch,
+    requiredTablesPresent,
+    missingTables,
     users,
     companies,
     nfcTags: tags,
@@ -40,7 +42,7 @@ try {
     visitsNfcTagColumn: visitTagColumn,
   });
 
-  if (!tablesMatch || !adminPasswordValid) {
+  if (!requiredTablesPresent || !adminPasswordValid) {
     process.exitCode = 1;
   }
 } finally {
