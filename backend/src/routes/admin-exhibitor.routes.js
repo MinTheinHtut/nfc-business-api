@@ -1,0 +1,2 @@
+import { Router } from 'express'; import { createExhibitor,getExhibitor,listExhibitors,updateExhibitor } from '../controllers/admin-exhibitor.controller.js'; import { requireAdmin,requireAuth } from '../middleware/auth.middleware.js';
+const router=Router();router.use(requireAuth,requireAdmin);router.get('/',listExhibitors);router.get('/:id',getExhibitor);router.post('/',createExhibitor);router.put('/:id',updateExhibitor);export default router;

@@ -1,0 +1,2 @@
+import pool from '../config/database.js';
+export async function listConfirmations(req,res,next){try{const [confirmations]=await pool.query(`SELECT cs.id AS record_id, u.username, u.full_name, c.company_name, cs.saved_at AS confirmed_at FROM company_saves cs JOIN users u ON u.id=cs.user_id JOIN companies c ON c.id=cs.company_id ORDER BY cs.saved_at DESC, cs.id DESC`);res.json({confirmations});}catch(e){next(e);}}

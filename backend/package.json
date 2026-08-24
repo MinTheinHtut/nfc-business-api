@@ -1,0 +1,26 @@
+{
+  "name": "nfc-business-matching-backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "db:setup": "node src/utils/setup-database.js",
+    "db:seed": "node src/utils/seed-database.js",
+    "db:reset": "node src/utils/reset-database.js",
+    "db:verify": "node src/utils/verify-database.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "latest",
+    "dotenv": "latest",
+    "express": "latest",
+    "express-mysql-session": "^3.0.3",
+    "express-session": "^1.19.0",
+    "mysql2": "^3.23.3"
+  }
+}
