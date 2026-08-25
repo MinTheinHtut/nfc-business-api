@@ -5,24 +5,40 @@ import { useAuth } from '../AuthContext.jsx';
 
 export default function PublicCompanyPage() {
   const { token } = useParams();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [company, setCompany] = useState(null);
   const [confirmation, setConfirmation] = useState(null);
-  const [error, setError] = useState('');
+  const [companyLoading, setCompanyLoading] = useState(true);
+  const [companyError, setCompanyError] = useState('');
+  const [actionError, setActionError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [cancelled, setCancelled] = useState(false);
 
   useEffect(() => {
-    if (authLoading) return;
-    setError('');
-    apiRequest(`/public/companies/${encodeURIComponent(token)}`)
-      .then(({ company: result, confirmation: existing }) => {
-        setCompany(result);
-        setConfirmation(existing ? { ...existing, message: 'You already confirmed this contact.' } : null);
-      })
-      .catch((requestError) => setError(requestError.message));
-  }, [token, user, authLoading]);
+    let active = true;
+
+    async function loadCompany() {
+      setCompanyLoading(true);
+      setCompanyError('');
+      setCompany(null);
+      try {
+        const result = await apiRequest(`/public/companies/${encodeURIComponent(token)}`);
+        if (!active) return;
+        setCompany(result.company);
+        setConfirmation(result.confirmation
+          ? { ...result.confirmation, message: 'You already confirmed this contact.' }
+          : null);
+      } catch {
+        if (active) setCompanyError('Unable to load company profile.');
+      } finally {
+        if (active) setCompanyLoading(false);
+      }
+    }
+
+    loadCompany();
+    return () => { active = false; };
+  }, [token]);
 
   async function handleConfirm() {
     if (!user) {
@@ -30,13 +46,13 @@ export default function PublicCompanyPage() {
       return;
     }
     setSubmitting(true);
-    setError('');
+    setActionError('');
     try {
       const result = await apiRequest(`/public/companies/${encodeURIComponent(token)}/confirm`, { method: 'POST' });
       setConfirmation({ confirmedAt: result.confirmedAt, message: result.message });
     } catch (requestError) {
       if (requestError.status === 401) navigate(`/login?redirect=${encodeURIComponent(`/company/${token}`)}`);
-      else setError(requestError.message);
+      else setActionError(requestError.message);
     } finally {
       setSubmitting(false);
     }
@@ -47,11 +63,11 @@ export default function PublicCompanyPage() {
     else setCancelled(true);
   }
 
-  if (error) {
-    return <main className="public-shell"><section className="public-card public-message"><span className="eyebrow">NFC Business Match</span><h1>Invalid or inactive NFC link.</h1><p>Please ask the organizer for a valid NFC link.</p><Link className="secondary-link" to="/login">Go to sign in</Link></section></main>;
-  }
+  if (companyLoading) return <div className="loading" role="status">Loading company profile…</div>;
 
-  if (!company) return <div className="loading">Loading company profile…</div>;
+  if (companyError || !company) {
+    return <main className="public-shell"><section className="public-card public-message"><span className="eyebrow">NFC Business Match</span><h1>Unable to load company profile.</h1><p>The NFC link may be invalid or inactive. Please ask the organizer for a valid link.</p><Link className="secondary-link" to="/login">Go to sign in</Link></section></main>;
+  }
 
   const dashboard = user?.role === 'admin' ? '/admin' : '/saved';
   return (
@@ -75,7 +91,7 @@ export default function PublicCompanyPage() {
           </> : <>
             <h2>Do you want to confirm this contact?</h2>
             <p>{user ? `You are confirming as ${user.fullName}.` : 'You will be asked to sign in before confirming.'}</p>
-            {error && <div className="error-message" role="alert">{error}</div>}
+            {actionError && <div className="error-message" role="alert">{actionError}</div>}
             <div className="confirm-buttons">
               <button className="secondary-button" type="button" onClick={handleCancel} disabled={submitting}>Cancel</button>
               <button className="primary-button compact" type="button" onClick={handleConfirm} disabled={submitting}>{submitting ? 'Confirming…' : 'Confirm'}</button>
