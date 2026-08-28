@@ -19,7 +19,8 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -38,27 +39,38 @@ jobs:
           VITE_API_URL: https://nfc-business-api-c3gwhab7brh4hnfh.japaneast-01.azurewebsites.net
         run: npm run build
 
-      - name: Package App Service runtime
-        working-directory: ./frontend
+      - name: Verify frontend build
         run: |
-          mkdir -p app-package
-          cp -r dist server.js package.json package-lock.json app-package/
+          test -f frontend/dist/index.html
+          test -f frontend/server.js
+          test -f frontend/package.json
+          test -d frontend/node_modules
 
-      - name: Upload frontend artifact
+      - name: Prepare deployment package
+        run: |
+          mkdir -p deploy
+          cp -r frontend/dist deploy/dist
+          cp frontend/server.js deploy/server.js
+          cp frontend/package.json deploy/package.json
+          cp frontend/package-lock.json deploy/package-lock.json
+          cp -r frontend/node_modules deploy/node_modules
+
+      - name: Upload frontend deployment artifact
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-dist
-          path: frontend/app-package
+          name: frontend-app
+          path: deploy
+          include-hidden-files: true
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
 
     steps:
-      - name: Download frontend artifact
+      - name: Download frontend deployment artifact
         uses: actions/download-artifact@v4
         with:
-          name: frontend-dist
+          name: frontend-app
           path: .
 
       - name: Deploy to Azure Web App
