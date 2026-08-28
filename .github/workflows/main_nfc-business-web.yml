@@ -7,6 +7,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/main_nfc-business-web.yml'
   workflow_dispatch:
 
 jobs:
@@ -35,11 +38,17 @@ jobs:
           VITE_API_URL: https://nfc-business-api-c3gwhab7brh4hnfh.japaneast-01.azurewebsites.net
         run: npm run build
 
+      - name: Package App Service runtime
+        working-directory: ./frontend
+        run: |
+          mkdir -p app-package
+          cp -r dist server.js package.json package-lock.json app-package/
+
       - name: Upload frontend artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: frontend/dist
+          path: frontend/app-package
 
   deploy:
     runs-on: ubuntu-latest
