@@ -8,40 +8,45 @@ if (!['true', 'false'].includes(sslSetting)) {
 }
 
 const sslEnabled = sslSetting === 'true';
+const caPath = process.env.DB_SSL_CA_PATH?.trim();
+
 let ssl;
 
 if (sslEnabled) {
-  const caPath = process.env.DB_SSL_CA_PATH?.trim();
-  const sslEnabled = String(process.env.DB_SSL).toLowerCase() === 'true';
+  ssl = {
+    rejectUnauthorized: true,
+  };
 
-const ssl = sslEnabled
-  ? {
-      rejectUnauthorized: true
+  // Optional custom CA file.
+  // Azure App Service can normally use its system CA trust store.
+  if (caPath) {
+    try {
+      const ca = readFileSync(caPath, 'utf8');
+
+      if (!ca.trim()) {
+        throw new Error('CA file is empty');
+      }
+
+      ssl.ca = ca;
+    } catch {
+      throw new Error('Unable to read a valid DB SSL CA file');
     }
-  : undefined;
-
-  try {
-    const ca = readFileSync(caPath, 'utf8');
-    if (!ca.trim()) throw new Error('CA file is empty');
-    ssl = { ca, rejectUnauthorized: true };
-  } catch {
-    throw new Error('Unable to read a valid DB SSL CA file');
   }
 }
 
 export const databaseConfig = {
-  // Local defaults keep the health endpoint available before MySQL is configured.
-  // Production deployments should always provide these values through the environment.
   host: process.env.DB_HOST || '127.0.0.1',
   port: Number(process.env.DB_PORT) || 3306,
   database: process.env.DB_NAME || 'nfc_business_matching',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
+
   connectTimeout: 10000,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
   charset: 'utf8mb4',
+
   ...(ssl ? { ssl } : {}),
 };
 
