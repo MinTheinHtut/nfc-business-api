@@ -7,6 +7,7 @@ export async function getAdminDashboard(request, response, next) {
         (SELECT COUNT(*) FROM users WHERE role = 'exhibitor' AND is_active = TRUE) AS total_exhibitors,
         (SELECT COUNT(*) FROM companies WHERE is_active = TRUE) AS total_companies,
         (SELECT COUNT(*) FROM company_saves) AS total_confirmations,
+        (SELECT COUNT(*) FROM nfc_tags) AS total_nfc_tags,
         (SELECT COUNT(DISTINCT company_id) FROM company_saves) AS matched_companies`,
     );
     const [companies] = await pool.query(

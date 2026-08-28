@@ -16,18 +16,18 @@ export async function login(request, response, next) {
   const password = typeof request.body.password === 'string' ? request.body.password : '';
 
   if (!username || !password) {
-    return response.status(400).json({ message: 'Username and password are required' });
+    return response.status(400).json({ message: 'Email or username and password are required' });
   }
 
   try {
     const [[user]] = await pool.execute(
       `SELECT id, username, password_hash, full_name, email, role, is_active
-       FROM users WHERE username = ? LIMIT 1`,
-      [username],
+       FROM users WHERE username = ? OR email = ? LIMIT 1`,
+      [username, username],
     );
 
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-      return response.status(401).json({ message: 'Invalid username or password' });
+      return response.status(401).json({ message: 'Invalid email/username or password' });
     }
     if (!user.is_active) return response.status(403).json({ message: 'This account is inactive. Contact the organizer.' });
 

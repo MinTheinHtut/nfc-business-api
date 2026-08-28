@@ -12,7 +12,13 @@ let ssl;
 
 if (sslEnabled) {
   const caPath = process.env.DB_SSL_CA_PATH?.trim();
-  if (!caPath) throw new Error('DB_SSL_CA_PATH is required when DB_SSL=true');
+  const sslEnabled = String(process.env.DB_SSL).toLowerCase() === 'true';
+
+const ssl = sslEnabled
+  ? {
+      rejectUnauthorized: true
+    }
+  : undefined;
 
   try {
     const ca = readFileSync(caPath, 'utf8');
