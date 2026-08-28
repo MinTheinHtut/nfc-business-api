@@ -58,4 +58,4 @@ jobs:
           app-name: 'nfc-business-web'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.YOUR_EXISTING_FRONTEND_PUBLISH_PROFILE_SECRET }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_16A1ED9C0FFC45059CB881BBBD1FA74A }}
