@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
-    "express": "^5.1.0",
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "^7.18.2",
