@@ -36,7 +36,7 @@ jobs:
       - name: Build frontend
         working-directory: ./frontend
         env:
-          VITE_API_URL: https://nfc-business-api-c3gwhab7brh4hnfh.japaneast-01.azurewebsites.net
+          VITE_API_URL: https://nfc-business-api-c3gwhab7brh4hnfh.japaneast-01.azurewebsites.net/api
         run: npm run build
 
       - name: Verify frontend build

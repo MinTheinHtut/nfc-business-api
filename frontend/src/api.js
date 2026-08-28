@@ -1,5 +1,8 @@
-const API_URL = import.meta.env.VITE_API_URL
-  || (import.meta.env.DEV ? 'http://localhost:3000/api' : '/api');
+const configuredUrl = import.meta.env.VITE_API_URL?.trim();
+const normalizedConfiguredUrl = configuredUrl?.replace(/\/+$/, '');
+const API_URL = normalizedConfiguredUrl
+  ? (normalizedConfiguredUrl.endsWith('/api') ? normalizedConfiguredUrl : `${normalizedConfiguredUrl}/api`)
+  : (import.meta.env.DEV ? 'http://localhost:3000/api' : '/api');
 
 export async function apiRequest(path, options = {}) {
   const response = await fetch(`${API_URL}${path}`, {
