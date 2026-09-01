@@ -60,11 +60,11 @@ export default function AdminHeader() {
       {primaryLinks.map(([to, label, end]) => <NavLink key={to} end={end} to={to}>{label}</NavLink>)}
       <div className="admin-more" ref={moreRef}>
         <button ref={moreButtonRef} className={moreActive ? 'active' : ''} type="button" aria-expanded={moreOpen} aria-controls="admin-more-menu" onClick={() => setMoreOpen((open) => !open)}>More <span aria-hidden="true">⌄</span></button>
-        <div id="admin-more-menu" className={`admin-more-menu ${moreOpen ? 'open' : ''}`} hidden={!moreOpen}>
+        {moreOpen && <div id="admin-more-menu" className="admin-more-menu open">
           <NavLink to="/admin/nfc-tags" onClick={() => setMoreOpen(false)}>NFC Tags</NavLink>
           <NavLink to="/admin/connections" onClick={() => setMoreOpen(false)}>Connections</NavLink>
           <button type="button" onClick={handleLogout}>Log out</button>
-        </div>
+        </div>}
       </div>
     </nav>
   </header>;
