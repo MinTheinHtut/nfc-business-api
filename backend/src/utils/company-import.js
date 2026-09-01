@@ -3,6 +3,7 @@ import path from 'node:path';
 import ExcelJS from 'exceljs';
 
 export const MAX_IMPORT_BYTES = 10 * 1024 * 1024;
+export const MAX_IMPORT_ROWS = 5000;
 export const IMPORT_EXTENSIONS = new Set(['.csv', '.xlsx']);
 
 const aliases = {
@@ -53,6 +54,7 @@ export async function parseCompanyWorkbook(file) {
   } catch { throw Object.assign(new Error('The spreadsheet could not be read. Check the file and try again.'), { status: 400 }); }
   const worksheet = workbook.worksheets[0];
   if (!worksheet || worksheet.actualRowCount < 1) throw Object.assign(new Error('The workbook does not contain any rows.'), { status: 400 });
+  if (worksheet.actualRowCount - 1 > MAX_IMPORT_ROWS) throw Object.assign(new Error(`The spreadsheet exceeds the ${MAX_IMPORT_ROWS.toLocaleString()} row limit.`), { status: 400 });
   const headerRow = worksheet.getRow(1); const columns = new Map(); const unknownHeaders = [];
   headerRow.eachCell({ includeEmpty: false }, (cell, number) => { const raw = cellValue(cell); const field = aliasLookup.get(normalizeHeader(raw)); if (field && !columns.has(field)) columns.set(field, number); else if (raw && !field) unknownHeaders.push(raw); });
   const missing = ['company_code','company_name'].filter((field) => !columns.has(field));
@@ -73,6 +75,7 @@ function validateRow(row) {
   data.company_code = String(data.company_code || '').trim().toUpperCase();
   data.company_name = String(data.company_name || '').trim();
   if (!data.company_code) errors.push('Company code is required.');
+  if (data.company_code && !/^[A-Z0-9_-]+$/.test(data.company_code)) errors.push('Company code may contain only letters, numbers, hyphens, or underscores.');
   if (!data.company_name) errors.push('Company name is required.');
   for (const [field, max] of Object.entries(lengths)) if (data[field] && String(data[field]).length > max) errors.push(`${field.replaceAll('_',' ')} must be ${max} characters or fewer.`);
   if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) errors.push('Email address is invalid.');

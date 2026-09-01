@@ -20,11 +20,18 @@ const mimeTypes = new Map([
   ['.woff', 'font/woff'], ['.woff2', 'font/woff2'],
 ]);
 
+function setSecurityHeaders(response) {
+  response.setHeader('Content-Security-Policy', "default-src 'self'; base-uri 'self'; connect-src 'self' https://*.azurewebsites.net; font-src 'self' data:; form-action 'self'; frame-ancestors 'none'; img-src 'self' data: https:; object-src 'none'; script-src 'self'; style-src 'self'");
+  response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+  response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.setHeader('X-Content-Type-Options', 'nosniff');
+  response.setHeader('X-Frame-Options', 'DENY');
+}
+
 function sendFile(request, response, filePath, fileStat) {
   response.statusCode = 200;
   response.setHeader('Content-Type', mimeTypes.get(path.extname(filePath).toLowerCase()) || 'application/octet-stream');
   response.setHeader('Content-Length', fileStat.size);
-  response.setHeader('X-Content-Type-Options', 'nosniff');
   if (filePath.includes(`${path.sep}assets${path.sep}`)) {
     response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   } else {
@@ -40,6 +47,7 @@ function sendFile(request, response, filePath, fileStat) {
 }
 
 async function requestHandler(request, response) {
+  setSecurityHeaders(response);
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     response.writeHead(405, { Allow: 'GET, HEAD' });
     return response.end();
@@ -55,6 +63,10 @@ async function requestHandler(request, response) {
 
   if (pathname.includes('\0')) {
     response.writeHead(400);
+    return response.end();
+  }
+  if (pathname.split('/').some((segment) => segment.startsWith('.') && segment !== '.well-known')) {
+    response.writeHead(404);
     return response.end();
   }
 

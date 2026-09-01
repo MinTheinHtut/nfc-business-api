@@ -16,7 +16,10 @@ function cleanCompany(body) {
 
 function validateCompany(company) {
   const errors = {};
+  const limits = { company_name: 255, company_code: 50, description: 5000, industry: 150, country: 100, contact_name: 255, contact_position: 255, email: 255, phone: 100, website: 255, address: 5000, logo_url: 500 };
   if (!company.company_name) errors.company_name = 'Company name is required';
+  if (company.company_code && !/^[A-Z0-9_-]+$/i.test(company.company_code)) errors.company_code = 'Use letters, numbers, hyphens, or underscores only';
+  for (const [field, limit] of Object.entries(limits)) if (company[field] && company[field].length > limit) errors[field] = `Must be ${limit} characters or fewer`;
   if (company.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(company.email)) {
     errors.email = 'Enter a valid email address';
   }
@@ -26,6 +29,14 @@ function validateCompany(company) {
       if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
     } catch {
       errors.website = 'Website must be a valid http or https URL';
+    }
+  }
+  if (company.logo_url) {
+    try {
+      const url = new URL(company.logo_url);
+      if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+    } catch {
+      errors.logo_url = 'Logo URL must be a valid http or https URL';
     }
   }
   return errors;

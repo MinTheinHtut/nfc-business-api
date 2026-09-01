@@ -2,7 +2,7 @@ import { randomInt } from 'node:crypto';
 
 const tokenCharacters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
-function randomSegment(length = 6) {
+function randomSegment(length = 16) {
   return Array.from(
     { length },
     () => tokenCharacters[randomInt(tokenCharacters.length)],

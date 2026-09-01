@@ -3,12 +3,15 @@ const normalizedConfiguredUrl = configuredUrl?.replace(/\/+$/, '');
 const API_URL = normalizedConfiguredUrl
   ? (normalizedConfiguredUrl.endsWith('/api') ? normalizedConfiguredUrl : `${normalizedConfiguredUrl}/api`)
   : (import.meta.env.DEV ? 'http://localhost:3000/api' : '/api');
+let csrfToken = null;
 
 export async function apiRequest(path, options = {}) {
   const isFormData = options.body instanceof FormData;
-  const response = await fetch(`${API_URL}${path}`, { credentials: 'include', cache: 'no-store', ...options, headers: { ...(isFormData ? {} : { 'Content-Type': 'application/json' }), ...options.headers } });
+  const method = (options.method || 'GET').toUpperCase();
+  const response = await fetch(`${API_URL}${path}`, { credentials: 'include', cache: 'no-store', ...options, headers: { ...(isFormData ? {} : { 'Content-Type': 'application/json' }), ...(!['GET','HEAD','OPTIONS'].includes(method) && csrfToken ? { 'X-CSRF-Token': csrfToken } : {}), ...options.headers } });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) { const error = new Error(data.message || 'We could not complete that request. Please try again.'); error.status = response.status; error.errors = data.errors; throw error; }
+  if (data.csrfToken) csrfToken = data.csrfToken;
   return data;
 }
 export const getPublicCompany = (token) => apiRequest(`/public/companies/${encodeURIComponent(token)}`);

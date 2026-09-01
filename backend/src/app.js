@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import session from 'express-session';
+import helmet from 'helmet';
 import { sessionLifetimeMs, sessionStore } from './config/session-store.js';
 import adminCompanyRouter from './routes/admin-company.routes.js';
 import adminNfcRouter from './routes/admin-nfc.routes.js';
@@ -12,16 +13,29 @@ import contactRouter from './routes/contact.routes.js';
 import adminDashboardRouter from './routes/admin-dashboard.routes.js';
 import adminExhibitorRouter from './routes/admin-exhibitor.routes.js';
 import adminConfirmationRouter from './routes/admin-confirmation.routes.js';
+import { requireCsrf } from './middleware/security.middleware.js';
 
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
 const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
 
-if (isProduction && !process.env.SESSION_SECRET) {
-  throw new Error('SESSION_SECRET is required in production');
+if (isProduction && (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32)) {
+  throw new Error('SESSION_SECRET must be at least 32 characters in production');
+}
+if (isProduction && !process.env.FRONTEND_URL) {
+  throw new Error('FRONTEND_URL is required in production');
 }
 
 app.disable('x-powered-by');
+app.use(helmet({
+  contentSecurityPolicy: { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] } },
+  crossOriginResourcePolicy: false,
+  referrerPolicy: { policy: 'no-referrer' },
+}));
+app.use((request, response, next) => {
+  response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+  next();
+});
 
 // Hosting providers normally terminate HTTPS before forwarding to Express.
 // Trusting the first proxy lets express-session recognize the original secure request.
@@ -31,11 +45,14 @@ app.use(
   cors({
     origin(origin, callback) {
       if (!origin || origin.replace(/\/$/, '') === frontendUrl) return callback(null, true);
-      return callback(null, false);
+      const error = new Error('Origin not allowed');
+      error.status = 403;
+      return callback(error);
     },
     credentials: true,
   }),
 );
+app.use(requireCsrf);
 app.use(express.json({ limit: '100kb' }));
 app.use(
   session({
@@ -71,8 +88,12 @@ app.use((request, response) => {
 });
 
 app.use((error, request, response, next) => {
-  console.error(error);
-  response.status(500).json({ message: 'Internal server error' });
+  const status = Number.isInteger(error.status) ? error.status : error.type === 'entity.too.large' ? 413 : 500;
+  console.error('Request failed', { method: request.method, path: request.path, status, name: error.name, code: error.code, message: error.message });
+  if (status === 403 && error.message === 'Origin not allowed') return response.status(403).json({ message: 'Origin not allowed' });
+  if (status === 413) return response.status(413).json({ message: 'Request body is too large' });
+  if (status >= 400 && status < 500) return response.status(status).json({ message: 'Request could not be processed' });
+  return response.status(500).json({ message: 'Internal server error' });
 });
 
 export default app;

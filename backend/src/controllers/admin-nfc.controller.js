@@ -48,6 +48,7 @@ export async function createNfcTag(request, response, next) {
   const companyId = parseId(request.body.company_id);
   const errors = {};
   if (!tagCode) errors.tag_code = 'Tag code is required';
+  if (tagCode.length > 100) errors.tag_code = 'Tag code must be 100 characters or fewer';
   if (!companyId) errors.company_id = 'Select a company';
   if (Object.keys(errors).length) return response.status(400).json({ message: 'Please correct the highlighted fields', errors });
 
@@ -78,6 +79,7 @@ export async function updateNfcTag(request, response, next) {
   if (!id) return response.status(400).json({ message: 'Invalid NFC tag ID' });
   const errors = {};
   if (!tagCode) errors.tag_code = 'Tag code is required';
+  if (tagCode.length > 100) errors.tag_code = 'Tag code must be 100 characters or fewer';
   if (!companyId) errors.company_id = 'Select a company';
   if (Object.keys(errors).length) return response.status(400).json({ message: 'Please correct the highlighted fields', errors });
 
@@ -92,6 +94,7 @@ export async function updateNfcTag(request, response, next) {
       'UPDATE nfc_tags SET company_id = ?, tag_code = ?, public_token = ?, is_active = ? WHERE id = ?',
       [companyId, tagCode, publicToken, isActive, id],
     );
+    if (request.body.regenerate_token) console.info('NFC token regenerated', { adminUserId: request.session.user.id, nfcTagId: id, timestamp: new Date().toISOString() });
     response.json({ message: 'NFC tag updated successfully', nfcTag: withPublicUrl({ id, company_id: companyId, tag_code: tagCode, public_token: publicToken, is_active: isActive }) });
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
@@ -108,6 +111,7 @@ export async function deleteNfcTag(request, response, next) {
   try {
     const [result] = await pool.execute('DELETE FROM nfc_tags WHERE id = ?', [id]);
     if (!result.affectedRows) return response.status(404).json({ message: 'NFC tag not found' });
+    console.info('NFC tag deleted', { adminUserId: request.session.user.id, nfcTagId: id, timestamp: new Date().toISOString() });
     return response.json({ message: 'NFC tag deleted successfully' });
   } catch (error) {
     return next(error);
