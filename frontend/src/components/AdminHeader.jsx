@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
 
 export default function AdminHeader() {
@@ -12,14 +12,14 @@ export default function AdminHeader() {
 
   return (
     <header className="admin-header">
-      <Link className="brand" to="/admin">NFC Match</Link>
+      <NavLink className="brand" to="/admin"><span className="brand-mark">N</span><span>NFC Connect<small>Event organizer</small></span></NavLink>
       <nav aria-label="Admin navigation">
-        <Link to="/admin">Dashboard</Link>
-        <Link to="/admin/exhibitors">Exhibitors</Link>
-        <Link to="/admin/visitors">Visitors</Link>
-        <Link to="/admin/nfc">NFC Links</Link>
-        <Link to="/admin/confirmations">Confirmations</Link>
-        <button type="button" onClick={handleLogout}>Logout</button>
+        <NavLink end to="/admin">Overview</NavLink>
+        <NavLink to="/admin/companies">Companies</NavLink>
+        <NavLink to="/admin/exhibitors">Exhibitors</NavLink>
+        <NavLink to="/admin/nfc-tags">NFC Tags</NavLink>
+        <NavLink to="/admin/connections">Confirmations</NavLink>
+        <button type="button" onClick={handleLogout}>Log out</button>
       </nav>
     </header>
   );

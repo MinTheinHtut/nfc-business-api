@@ -1,35 +1,3 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
-import DashboardPage from './pages/DashboardPage.jsx';
-import AdminCompaniesPage from './pages/AdminCompaniesPage.jsx';
-import CompanyFormPage from './pages/CompanyFormPage.jsx';
-import AdminNfcTagsPage from './pages/AdminNfcTagsPage.jsx';
-import LoginPage from './pages/LoginPage.jsx';
-import PublicCompanyPage from './pages/PublicCompanyPage.jsx';
-import AdminExhibitorsPage from './pages/AdminExhibitorsPage.jsx';
-import AdminConfirmationsPage from './pages/AdminConfirmationsPage.jsx';
-
-function App() {
-  return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/company/:token" element={<PublicCompanyPage />} />
-      <Route path="/admin" element={<ProtectedRoute adminOnly><DashboardPage admin /></ProtectedRoute>} />
-      <Route path="/admin/companies" element={<ProtectedRoute adminOnly><AdminCompaniesPage /></ProtectedRoute>} />
-      <Route path="/admin/companies/new" element={<ProtectedRoute adminOnly><CompanyFormPage /></ProtectedRoute>} />
-      <Route path="/admin/companies/:id/edit" element={<ProtectedRoute adminOnly><CompanyFormPage /></ProtectedRoute>} />
-      <Route path="/admin/visitors" element={<ProtectedRoute adminOnly><AdminCompaniesPage /></ProtectedRoute>} />
-      <Route path="/admin/visitors/new" element={<ProtectedRoute adminOnly><CompanyFormPage /></ProtectedRoute>} />
-      <Route path="/admin/visitors/:id/edit" element={<ProtectedRoute adminOnly><CompanyFormPage /></ProtectedRoute>} />
-      <Route path="/admin/exhibitors" element={<ProtectedRoute adminOnly><AdminExhibitorsPage /></ProtectedRoute>} />
-      <Route path="/admin/confirmations" element={<ProtectedRoute adminOnly><AdminConfirmationsPage /></ProtectedRoute>} />
-      <Route path="/admin/nfc-tags" element={<ProtectedRoute adminOnly><AdminNfcTagsPage /></ProtectedRoute>} />
-      <Route path="/admin/nfc" element={<ProtectedRoute adminOnly><AdminNfcTagsPage /></ProtectedRoute>} />
-      <Route path="/saved" element={<ProtectedRoute exhibitorOnly><DashboardPage /></ProtectedRoute>} />
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="*" element={<main className="auth-shell"><section className="auth-card"><h1>Page not found</h1><p>This page will be available in a later phase.</p></section></main>} />
-    </Routes>
-  );
-}
-
-export default App;
+import { Link,Navigate,Route,Routes } from 'react-router-dom';import ProtectedRoute from './components/ProtectedRoute.jsx';import DashboardPage from './pages/DashboardPage.jsx';import ContactDetailPage from './pages/ContactDetailPage.jsx';import AdminCompaniesPage from './pages/AdminCompaniesPage.jsx';import CompanyFormPage from './pages/CompanyFormPage.jsx';import AdminNfcTagsPage from './pages/AdminNfcTagsPage.jsx';import LoginPage from './pages/LoginPage.jsx';import PublicCompanyPage from './pages/PublicCompanyPage.jsx';import AdminExhibitorsPage from './pages/AdminExhibitorsPage.jsx';import AdminConfirmationsPage from './pages/AdminConfirmationsPage.jsx';
+const exhibitor=page=><ProtectedRoute exhibitorOnly>{page}</ProtectedRoute>;const admin=page=><ProtectedRoute adminOnly>{page}</ProtectedRoute>;
+export default function App(){return <Routes><Route path="/login" element={<LoginPage/>}/><Route path="/company/:token" element={<PublicCompanyPage/>}/><Route path="/dashboard" element={exhibitor(<DashboardPage/>)}/><Route path="/contacts" element={exhibitor(<DashboardPage contactsOnly/>)}/><Route path="/contacts/:id" element={exhibitor(<ContactDetailPage/>)}/><Route path="/saved" element={<Navigate to="/contacts" replace/>}/><Route path="/admin" element={admin(<DashboardPage admin/>)}/><Route path="/admin/companies" element={admin(<AdminCompaniesPage/>)}/><Route path="/admin/companies/new" element={admin(<CompanyFormPage/>)}/><Route path="/admin/companies/:id/edit" element={admin(<CompanyFormPage/>)}/><Route path="/admin/visitors" element={<Navigate to="/admin/companies" replace/>}/><Route path="/admin/visitors/new" element={<Navigate to="/admin/companies/new" replace/>}/><Route path="/admin/visitors/:id/edit" element={admin(<CompanyFormPage/>)}/><Route path="/admin/exhibitors" element={admin(<AdminExhibitorsPage/>)}/><Route path="/admin/connections" element={admin(<AdminConfirmationsPage/>)}/><Route path="/admin/confirmations" element={<Navigate to="/admin/connections" replace/>}/><Route path="/admin/nfc-tags" element={admin(<AdminNfcTagsPage/>)}/><Route path="/admin/nfc" element={<Navigate to="/admin/nfc-tags" replace/>}/><Route path="/" element={<Navigate to="/login" replace/>}/><Route path="*" element={<main className="nfc-page"><section className="state-card"><span className="state-icon">?</span><h1>Page not found</h1><p>The page you’re looking for does not exist.</p><Link className="primary-link" to="/login">Go to sign in</Link></section></main>}/></Routes>}

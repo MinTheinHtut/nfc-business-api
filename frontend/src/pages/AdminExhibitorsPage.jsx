@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
-import { apiRequest } from '../api.js';
+import { getAdminExhibitors, saveAdminExhibitor } from '../api.js';
 import AdminHeader from '../components/AdminHeader.jsx';
+import { useAuth } from '../AuthContext.jsx';
 
 const empty = { id: null, username: '', full_name: '', email: '', password: '', is_active: true };
 export default function AdminExhibitorsPage() {
+  const { csrfToken } = useAuth();
   const [items,setItems]=useState([]); const [form,setForm]=useState(empty); const [error,setError]=useState(''); const [message,setMessage]=useState(''); const [saving,setSaving]=useState(false);
-  async function load(){try{const data=await apiRequest('/admin/exhibitors');setItems(data.exhibitors);}catch(e){setError(e.message);}}
+  async function load(){try{const data=await getAdminExhibitors();setItems(data.exhibitors);}catch(e){setError(e.message);}}
   useEffect(()=>{load();},[]);
   function change(e){const {name,value,type,checked}=e.target;setForm(x=>({...x,[name]:type==='checkbox'?checked:value}));}
-  async function submit(e){e.preventDefault();setSaving(true);setError('');setMessage('');try{await apiRequest(form.id?`/admin/exhibitors/${form.id}`:'/admin/exhibitors',{method:form.id?'PUT':'POST',body:JSON.stringify(form)});setMessage(form.id?'Exhibitor updated.':'Exhibitor created.');setForm(empty);await load();}catch(x){setError(x.message);}finally{setSaving(false);}}
+  async function submit(e){e.preventDefault();setSaving(true);setError('');setMessage('');try{await saveAdminExhibitor(form,csrfToken);setMessage(form.id?'Exhibitor updated.':'Exhibitor created.');setForm(empty);await load();}catch(x){setError(x.message);}finally{setSaving(false);}}
   function edit(x){setForm({...empty,...x,is_active:Boolean(x.is_active)});window.scrollTo({top:0,behavior:'smooth'});}
-  async function toggle(x){setError('');try{await apiRequest(`/admin/exhibitors/${x.id}`,{method:'PUT',body:JSON.stringify({username:x.username,full_name:x.full_name,email:x.email,password:'',is_active:!x.is_active})});await load();}catch(e){setError(e.message);}}
+  async function toggle(x){setError('');try{await saveAdminExhibitor({id:x.id,username:x.username,full_name:x.full_name,email:x.email,password:'',is_active:!x.is_active},csrfToken);await load();}catch(e){setError(e.message);}}
   return <div className="admin-page"><AdminHeader/><main className="admin-content"><div className="page-heading"><div><span className="eyebrow">Organizer</span><h1>Exhibitors</h1></div></div>
     <form className="company-form panel management-form" onSubmit={submit}><h2 className="form-wide">{form.id?'Edit exhibitor':'Create exhibitor'}</h2>{error&&<div className="error-message form-wide">{error}</div>}{message&&<div className="success-message form-wide">{message}</div>}
       <div className="form-field"><label htmlFor="username">Username *</label><input id="username" name="username" value={form.username} onChange={change} required/></div>

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { apiRequest } from '../api.js';
+import { getAdminCompanies, getAdminNfcTags, saveAdminNfcTag } from '../api.js';
 import AdminHeader from '../components/AdminHeader.jsx';
+import { useAuth } from '../AuthContext.jsx';
 
 const emptyForm = { id: null, tag_code: '', company_id: '', is_active: true, regenerate_token: false };
 
 export default function AdminNfcTagsPage() {
+  const { csrfToken } = useAuth();
   const [tags, setTags] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -21,8 +23,8 @@ export default function AdminNfcTagsPage() {
   async function loadData() {
     try {
       const [tagData, companyData] = await Promise.all([
-        apiRequest('/admin/nfc-tags'),
-        apiRequest('/admin/companies'),
+        getAdminNfcTags(),
+        getAdminCompanies(),
       ]);
       setTags(tagData.nfcTags);
       setCompanies(companyData.companies.filter((company) => company.is_active));
@@ -54,10 +56,7 @@ export default function AdminNfcTagsPage() {
     setMessage('');
     setErrors({});
     try {
-      await apiRequest(form.id ? `/admin/nfc-tags/${form.id}` : '/admin/nfc-tags', {
-        method: form.id ? 'PUT' : 'POST',
-        body: JSON.stringify({ ...form, company_id: Number(form.company_id) }),
-      });
+      await saveAdminNfcTag({ ...form, company_id: Number(form.company_id) }, csrfToken);
       setForm(emptyForm);
       await loadData();
     } catch (error) {
@@ -82,7 +81,7 @@ export default function AdminNfcTagsPage() {
     <div className="admin-page">
       <AdminHeader />
       <main className="admin-content">
-        <div className="page-heading"><div><span className="eyebrow">Organizer</span><h1>NFC Simulation</h1><p>Opening one of these URLs simulates tapping the corresponding NFC tag. The physical NFC tag will later contain this same URL.</p></div></div>
+        <div className="page-heading"><div><span className="eyebrow">Organizer</span><h1>NFC tags</h1><p>Link physical tags to company profiles and manage their public URLs.</p></div></div>
         <form className="nfc-form panel" onSubmit={submit}>
           <div className="form-title">
             <h2>{form.id ? 'Edit NFC tag' : 'Create NFC tag'}</h2>
@@ -115,8 +114,8 @@ export default function AdminNfcTagsPage() {
         </form>
 
         <section className="nfc-list" aria-labelledby="nfc-list-title">
-          <h2 id="nfc-list-title">NFC Demo Links</h2>
-          <p>Opening these URLs simulates tapping the NFC tag.</p>
+          <h2 id="nfc-list-title">Tag links</h2>
+          <p>Open a URL to verify the same profile visitors receive from an NFC tap.</p>
           {loading ? <div className="panel" role="status">Loading NFC tags…</div> : (
             <div className="nfc-grid">
               {tags.map((tag) => (

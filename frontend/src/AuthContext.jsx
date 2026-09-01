@@ -1,15 +1,19 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { apiRequest } from './api.js';
+import { getCurrentUser, loginUser, logoutUser } from './api.js';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [csrfToken, setCsrfToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiRequest('/auth/me')
-      .then(({ user: currentUser }) => setUser(currentUser))
+    getCurrentUser()
+      .then(({ user: currentUser, csrfToken: currentCsrfToken }) => {
+        setUser(currentUser);
+        setCsrfToken(currentCsrfToken || null);
+      })
       .catch((error) => {
         if (error.status !== 401) console.error(error);
       })
@@ -17,21 +21,20 @@ export function AuthProvider({ children }) {
   }, []);
 
   async function login(username, password) {
-    const data = await apiRequest('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password }),
-    });
+    const data = await loginUser(username, password);
     setUser(data.user);
+    setCsrfToken(data.csrfToken || null);
     return data.user;
   }
 
   async function logout() {
-    await apiRequest('/auth/logout', { method: 'POST' });
+    await logoutUser(csrfToken);
     setUser(null);
+    setCsrfToken(null);
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, csrfToken, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
