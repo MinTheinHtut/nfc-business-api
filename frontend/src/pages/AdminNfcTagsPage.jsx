@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getAdminCompanies, getAdminNfcTags, saveAdminNfcTag } from '../api.js';
+import { deleteAdminNfcTag, getAdminCompanies, getAdminNfcTags, saveAdminNfcTag } from '../api.js';
 import AdminHeader from '../components/AdminHeader.jsx';
 import { useAuth } from '../AuthContext.jsx';
 
@@ -15,6 +15,7 @@ export default function AdminNfcTagsPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   function nfcUrl(tag) {
     return `${window.location.origin}/company/${encodeURIComponent(tag.public_token)}`;
@@ -77,6 +78,21 @@ export default function AdminNfcTagsPage() {
     }
   }
 
+  async function deleteTag(tag) {
+    if (!window.confirm(`Delete NFC tag ${tag.tag_code}? Its public link will stop working, but saved connections will be preserved.`)) return;
+    setDeletingId(tag.id);
+    setMessage('');
+    try {
+      await deleteAdminNfcTag(tag.id, csrfToken);
+      if (form.id === tag.id) setForm(emptyForm);
+      await loadData();
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   return (
     <div className="admin-page">
       <AdminHeader />
@@ -134,6 +150,7 @@ export default function AdminNfcTagsPage() {
                     <a className="primary-link" href={`/company/${encodeURIComponent(tag.public_token)}`} target="_blank" rel="noreferrer">Open</a>
                     <button className="secondary-button" type="button" onClick={() => copyUrl(tag)}>{copiedId === tag.id ? 'URL copied.' : 'Copy URL'}</button>
                     <button className="secondary-button" type="button" onClick={() => editTag(tag)}>Edit</button>
+                    <button className="link-button danger" type="button" onClick={() => deleteTag(tag)} disabled={deletingId === tag.id}>{deletingId === tag.id ? 'Deleting…' : 'Delete'}</button>
                   </div>
                 </article>
               ))}

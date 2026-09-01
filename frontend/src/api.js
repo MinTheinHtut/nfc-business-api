@@ -24,6 +24,7 @@ export const getAdminExhibitors = () => apiRequest('/admin/exhibitors');
 export const getAdminCompanies = () => apiRequest('/admin/companies');
 export const getAdminCompany = (id) => apiRequest(`/admin/companies/${encodeURIComponent(id)}`);
 export const getAdminNfcTags = () => apiRequest('/admin/nfc-tags');
+export const deleteAdminNfcTag = (id) => apiRequest(`/admin/nfc-tags/${encodeURIComponent(id)}`, { method: 'DELETE' });
 export function saveAdminExhibitor(exhibitor) { return apiRequest(exhibitor.id ? `/admin/exhibitors/${exhibitor.id}` : '/admin/exhibitors', { method: exhibitor.id ? 'PUT' : 'POST', body: JSON.stringify(exhibitor) }); }
 export function saveAdminCompany(company, id) { return apiRequest(id ? `/admin/companies/${encodeURIComponent(id)}` : '/admin/companies', { method: id ? 'PUT' : 'POST', body: JSON.stringify(company) }); }
 export const deactivateAdminCompany = (id) => apiRequest(`/admin/companies/${encodeURIComponent(id)}`, { method: 'DELETE' });

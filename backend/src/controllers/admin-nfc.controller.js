@@ -100,3 +100,16 @@ export async function updateNfcTag(request, response, next) {
     next(error);
   }
 }
+
+export async function deleteNfcTag(request, response, next) {
+  const id = parseId(request.params.id);
+  if (!id) return response.status(400).json({ message: 'Invalid NFC tag ID' });
+
+  try {
+    const [result] = await pool.execute('DELETE FROM nfc_tags WHERE id = ?', [id]);
+    if (!result.affectedRows) return response.status(404).json({ message: 'NFC tag not found' });
+    return response.json({ message: 'NFC tag deleted successfully' });
+  } catch (error) {
+    return next(error);
+  }
+}
