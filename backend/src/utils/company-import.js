@@ -14,7 +14,7 @@ const aliases = {
   address: ['address'], description: ['description', 'company description'],
   contact_name: ['contact_name', 'contact name', 'contact person', 'contact_person'],
   contact_position: ['contact_position', 'contact position', 'position'],
-  logo_url: ['logo_url', 'logo url'], is_active: ['is_active', 'is active', 'active', 'status'],
+  logo_url: ['logo_url', 'logo url', 'logo', 'company_logo', 'company logo'], is_active: ['is_active', 'is active', 'active', 'status'],
 };
 const aliasLookup = new Map(Object.entries(aliases).flatMap(([field, names]) => names.map((name) => [normalizeHeader(name), field])));
 const lengths = { company_code: 50, company_name: 255, industry: 150, country: 100, website: 255, email: 255, phone: 100, contact_name: 255, contact_position: 255, logo_url: 500 };

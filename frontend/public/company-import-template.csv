@@ -1,3 +1,3 @@
-company_code,company_name,industry,country,email,phone,website,address,description,contact_name,contact_position,is_active
-SAMPLE001,Example Technology Co.,Technology,Thailand,hello@example.com,+66 2 000 0000,https://example.com,"Bangkok, Thailand",Example company for import testing,Alex Example,Business Development,active
-SAMPLE002,Sample Manufacturing Ltd.,Manufacturing,Japan,contact@example.org,03-0000-0000,https://example.org,"Tokyo, Japan",Second fictional sample company,Mika Sample,Sales Manager,true
+company_code,company_name,industry,country,email,phone,website,logo_url,address,description,contact_name,contact_position,is_active
+SAMPLE001,Example Technology Co.,Technology,Thailand,hello@example.com,+66 2 000 0000,https://example.com,https://example.com/logo.png,"Bangkok, Thailand",Example company for import testing,Alex Example,Business Development,active
+SAMPLE002,Sample Manufacturing Ltd.,Manufacturing,Japan,contact@example.org,03-0000-0000,https://example.org,,"Tokyo, Japan",Second fictional sample company,Mika Sample,Sales Manager,true

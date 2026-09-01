@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-import { generatePublicToken } from '../utils/public-token.js';
+import { createInitialNfcTag } from '../utils/initial-nfc-tag.js';
 
 const companyFields = [
   'company_name', 'company_code', 'description', 'industry', 'country',
@@ -7,14 +7,14 @@ const companyFields = [
   'address', 'logo_url',
 ];
 
-function cleanCompany(body) {
+export function cleanCompany(body) {
   return Object.fromEntries(companyFields.map((field) => [
     field,
     typeof body[field] === 'string' ? body[field].trim() || null : null,
   ]));
 }
 
-function validateCompany(company) {
+export function validateCompany(company) {
   const errors = {};
   const limits = { company_name: 255, company_code: 50, description: 5000, industry: 150, country: 100, contact_name: 255, contact_position: 255, email: 255, phone: 100, website: 255, address: 5000, logo_url: 500 };
   if (!company.company_name) errors.company_name = 'Company name is required';
@@ -106,18 +106,9 @@ export async function createCompany(request, response, next) {
       `INSERT INTO companies (${companyFields.join(', ')}) VALUES (${companyFields.map(() => '?').join(', ')})`,
       values,
     );
-    let publicToken;
-    for (let attempt = 0; attempt < 10; attempt += 1) {
-      publicToken = generatePublicToken(company.company_code);
-      const [[existing]] = await connection.execute('SELECT id FROM nfc_tags WHERE public_token = ?', [publicToken]);
-      if (!existing) break;
-    }
-    let tagCode = `NFC-${company.company_code}-001`;
-    const [[tagExists]] = await connection.execute('SELECT id FROM nfc_tags WHERE tag_code = ?', [tagCode]);
-    if (tagExists) tagCode = `NFC-${company.company_code}-${Date.now().toString().slice(-5)}`;
-    await connection.execute('INSERT INTO nfc_tags (company_id, tag_code, public_token) VALUES (?, ?, ?)', [result.insertId, tagCode, publicToken]);
+    const nfcTag = await createInitialNfcTag(connection, result.insertId, company.company_code);
     await connection.commit();
-    response.status(201).json({ id: result.insertId, company_code: company.company_code, tag_code: tagCode, public_token: publicToken, message: 'Visitor and NFC link created successfully' });
+    response.status(201).json({ id: result.insertId, company_code: company.company_code, tag_code: nfcTag.tag_code, public_token: nfcTag.public_token, nfc_tag: nfcTag, message: 'Company created successfully. NFC tag generated automatically.' });
   } catch (error) {
     await connection.rollback();
     if (error.code === 'ER_DUP_ENTRY') {

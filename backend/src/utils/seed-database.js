@@ -9,9 +9,10 @@ const users = [
   ['exhibitor3', 'exhibitor123', 'Demo Exhibitor Three', 'exhibitor3@example.com', 'exhibitor'],
 ];
 const companies = [
-  ['ALT001', 'ALT Design Tech', 'Digital solutions for business events.', 'Digital Solutions', 'Thailand / Japan', 'Demo Contact', 'Business Development', 'contact@example.com', '+66 2 000 0001', 'https://example.com', 'Bangkok, Thailand', 'https://placehold.co/240x240?text=ALT'],
-  ['SAK001', 'Sakura Technology', 'Demo technology company from Japan.', 'Technology', 'Japan', 'Sakura Demo', 'Partnership Manager', 'sakura@example.com', '+81 3 0000 0002', 'https://example.com/sakura', 'Tokyo, Japan', 'https://placehold.co/240x240?text=SAK'],
-  ['BKK001', 'Bangkok Digital Solutions', 'Demo digital services company from Thailand.', 'Digital Services', 'Thailand', 'Bangkok Demo', 'Account Manager', 'bangkok@example.com', '+66 2 000 0003', 'https://example.com/bangkok', 'Bangkok, Thailand', 'https://placehold.co/240x240?text=BKK'],
+  ['ALT001', 'ALT Design Tech', 'Digital solutions for business events.', 'Digital Solutions', 'Thailand / Japan', 'Demo Contact', 'Business Development', 'contact@example.com', '+66 2 000 0001', 'https://example.com', 'Bangkok, Thailand', 'https://placehold.co/240x240/08745b/ffffff?text=ALT'],
+  ['SAK001', 'Sakura Technology', 'Demo technology company from Japan.', 'Technology', 'Japan', 'Sakura Demo', 'Partnership Manager', 'sakura@example.com', '+81 3 0000 0002', 'https://example.com/sakura', 'Tokyo, Japan', 'https://placehold.co/240x240/123b31/ffffff?text=SAK'],
+  // Demo-only broken URL verifies the frontend initials fallback without affecting production data.
+  ['BKK001', 'Bangkok Digital Solutions', 'Demo digital services company from Thailand.', 'Digital Services', 'Thailand', 'Bangkok Demo', 'Account Manager', 'bangkok@example.com', '+66 2 000 0003', 'https://example.com/bangkok', 'Bangkok, Thailand', 'https://example.invalid/demo-logo.png'],
   ['TESTCO', 'Test Company', 'Demo visitor used for the end-to-end NFC confirmation flow.', null, null, null, null, null, null, null, null, null],
 ];
 const tags = [
