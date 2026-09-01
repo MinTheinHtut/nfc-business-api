@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { deleteAdminNfcTag, getAdminCompanies, getAdminNfcTags, saveAdminNfcTag } from '../api.js';
 import AdminHeader from '../components/AdminHeader.jsx';
 import { useAuth } from '../AuthContext.jsx';
@@ -16,6 +16,9 @@ export default function AdminNfcTagsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [notice, setNotice] = useState('');
+  const deleteButtonRef = useRef(null);
 
   function nfcUrl(tag) {
     return `${window.location.origin}/company/${encodeURIComponent(tag.public_token)}`;
@@ -37,6 +40,16 @@ export default function AdminNfcTagsPage() {
   }
 
   useEffect(() => { loadData(); }, []);
+
+  useEffect(() => {
+    if (!pendingDelete) return undefined;
+    deleteButtonRef.current?.focus();
+    function closeOnEscape(event) {
+      if (event.key === 'Escape' && !deletingId) setPendingDelete(null);
+    }
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [pendingDelete, deletingId]);
 
   function updateField(event) {
     const { name, value, type, checked } = event.target;
@@ -79,12 +92,14 @@ export default function AdminNfcTagsPage() {
   }
 
   async function deleteTag(tag) {
-    if (!window.confirm(`Delete NFC tag ${tag.tag_code}? Its public link will stop working, but saved connections will be preserved.`)) return;
     setDeletingId(tag.id);
     setMessage('');
+    setNotice('');
     try {
       await deleteAdminNfcTag(tag.id, csrfToken);
       if (form.id === tag.id) setForm(emptyForm);
+      setPendingDelete(null);
+      setNotice(`NFC tag ${tag.tag_code} was deleted. Saved connections were preserved.`);
       await loadData();
     } catch (error) {
       setMessage(error.message);
@@ -104,6 +119,7 @@ export default function AdminNfcTagsPage() {
             <p>The generated URL can be written manually to a physical NFC tag.</p>
           </div>
           {message && <div className="error-message form-wide" role="alert">{message}</div>}
+          {notice && <div className="success-message form-wide motion-feedback" role="status">{notice}</div>}
           <div className="form-field">
             <label htmlFor="tag_code">Tag Code *</label>
             <input id="tag_code" name="tag_code" value={form.tag_code} onChange={updateField} required aria-invalid={Boolean(errors.tag_code)} />
@@ -150,7 +166,7 @@ export default function AdminNfcTagsPage() {
                     <a className="primary-link" href={`/company/${encodeURIComponent(tag.public_token)}`} target="_blank" rel="noreferrer">Open</a>
                     <button className="secondary-button" type="button" onClick={() => copyUrl(tag)}>{copiedId === tag.id ? 'URL copied.' : 'Copy URL'}</button>
                     <button className="secondary-button" type="button" onClick={() => editTag(tag)}>Edit</button>
-                    <button className="link-button danger" type="button" onClick={() => deleteTag(tag)} disabled={deletingId === tag.id}>{deletingId === tag.id ? 'Deleting…' : 'Delete'}</button>
+                    <button className="link-button danger" type="button" onClick={() => setPendingDelete(tag)}>Delete</button>
                   </div>
                 </article>
               ))}
@@ -159,6 +175,17 @@ export default function AdminNfcTagsPage() {
           )}
         </section>
       </main>
+      {pendingDelete && <div className="dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !deletingId) setPendingDelete(null); }}>
+        <section className="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-tag-title" aria-describedby="delete-tag-description">
+          <span className="eyebrow">Permanent action</span>
+          <h2 id="delete-tag-title">Delete NFC tag?</h2>
+          <p id="delete-tag-description"><strong>{pendingDelete.tag_code}</strong> will stop opening its public company profile. Existing saved connections will be preserved.</p>
+          <div className="dialog-actions">
+            <button className="secondary-button" type="button" onClick={() => setPendingDelete(null)} disabled={Boolean(deletingId)}>Cancel</button>
+            <button ref={deleteButtonRef} className="primary-button danger-action" type="button" onClick={() => deleteTag(pendingDelete)} disabled={Boolean(deletingId)}>{deletingId ? 'Deleting…' : 'Delete tag'}</button>
+          </div>
+        </section>
+      </div>}
     </div>
   );
 }
