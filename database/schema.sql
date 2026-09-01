@@ -1,6 +1,9 @@
 -- NFC Business Matching Database Schema
 -- Compatible with MySQL 5.7+ / 8.0+ / MariaDB 10.2+
--- Primary target database: itomevah_business_matching_nfc
+-- Primary target database: nfc_business
+-- Documented/manual copy of the schema for operators and database tools.
+-- backend/sql/schema.sql is the canonical runtime schema used by
+-- backend/src/utils/setup-database.js. Keep this copy synchronized with it.
 
 SET FOREIGN_KEY_CHECKS = 0;
 

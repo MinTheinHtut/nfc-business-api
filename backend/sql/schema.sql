@@ -80,3 +80,11 @@ CREATE TABLE IF NOT EXISTS visits (
   CONSTRAINT fk_visits_nfc_tag FOREIGN KEY (nfc_tag_id) REFERENCES nfc_tags (id)
     ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+-- Persistent sessions used by express-session + express-mysql-session.
+CREATE TABLE IF NOT EXISTS `sessions` (
+  `session_id` VARCHAR(128) COLLATE utf8mb4_bin NOT NULL,
+  `expires` INT UNSIGNED NOT NULL,
+  `data` MEDIUMTEXT COLLATE utf8mb4_bin,
+  PRIMARY KEY (`session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
