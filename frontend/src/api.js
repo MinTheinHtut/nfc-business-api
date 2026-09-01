@@ -5,7 +5,8 @@ const API_URL = normalizedConfiguredUrl
   : (import.meta.env.DEV ? 'http://localhost:3000/api' : '/api');
 
 export async function apiRequest(path, options = {}) {
-  const response = await fetch(`${API_URL}${path}`, { credentials: 'include', cache: 'no-store', ...options, headers: { 'Content-Type': 'application/json', ...options.headers } });
+  const isFormData = options.body instanceof FormData;
+  const response = await fetch(`${API_URL}${path}`, { credentials: 'include', cache: 'no-store', ...options, headers: { ...(isFormData ? {} : { 'Content-Type': 'application/json' }), ...options.headers } });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) { const error = new Error(data.message || 'We could not complete that request. Please try again.'); error.status = response.status; error.errors = data.errors; throw error; }
   return data;
@@ -27,3 +28,6 @@ export function saveAdminExhibitor(exhibitor) { return apiRequest(exhibitor.id ?
 export function saveAdminCompany(company, id) { return apiRequest(id ? `/admin/companies/${encodeURIComponent(id)}` : '/admin/companies', { method: id ? 'PUT' : 'POST', body: JSON.stringify(company) }); }
 export const deactivateAdminCompany = (id) => apiRequest(`/admin/companies/${encodeURIComponent(id)}`, { method: 'DELETE' });
 export function saveAdminNfcTag(tag) { return apiRequest(tag.id ? `/admin/nfc-tags/${encodeURIComponent(tag.id)}` : '/admin/nfc-tags', { method: tag.id ? 'PUT' : 'POST', body: JSON.stringify(tag) }); }
+function companyImportRequest(action, file) { const body = new FormData(); body.append('file', file); return apiRequest(`/admin/companies/import/${action}`, { method: 'POST', body }); }
+export const previewCompanyImport = (file) => companyImportRequest('preview', file);
+export const commitCompanyImport = (file) => companyImportRequest('commit', file);
