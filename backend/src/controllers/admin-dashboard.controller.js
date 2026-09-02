@@ -8,7 +8,10 @@ export async function getAdminDashboard(request, response, next) {
         (SELECT COUNT(*) FROM companies WHERE is_active = TRUE) AS total_companies,
         (SELECT COUNT(*) FROM company_saves) AS total_confirmations,
         (SELECT COUNT(*) FROM nfc_tags) AS total_nfc_tags,
-        (SELECT COUNT(DISTINCT company_id) FROM company_saves) AS matched_companies`,
+        (SELECT COUNT(DISTINCT company_id) FROM company_saves) AS matched_companies,
+        (SELECT COUNT(*) FROM visitors WHERE is_active = TRUE) AS total_visitors,
+        (SELECT COUNT(*) FROM visitor_company_connections) AS total_visitor_connections,
+        (SELECT COUNT(*) FROM visitor_company_connections WHERE status IN ('interested','follow_up')) AS actionable_connections`,
     );
     const [companies] = await pool.query(
       `SELECT c.id, c.company_name, COUNT(cs.id) AS confirmations

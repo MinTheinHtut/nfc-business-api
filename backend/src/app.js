@@ -13,6 +13,9 @@ import contactRouter from './routes/contact.routes.js';
 import adminDashboardRouter from './routes/admin-dashboard.routes.js';
 import adminExhibitorRouter from './routes/admin-exhibitor.routes.js';
 import adminConfirmationRouter from './routes/admin-confirmation.routes.js';
+import adminVisitorRouter from './routes/admin-visitor.routes.js';
+import adminVisitorConnectionRouter from './routes/admin-visitor-connection.routes.js';
+import publicVisitorRouter from './routes/public-visitor.routes.js';
 import { requireCsrf } from './middleware/security.middleware.js';
 
 const app = express();
@@ -82,6 +85,9 @@ app.use('/api/contacts', contactRouter);
 app.use('/api/admin/dashboard', adminDashboardRouter);
 app.use('/api/admin/exhibitors', adminExhibitorRouter);
 app.use('/api/admin/confirmations', adminConfirmationRouter);
+app.use('/api/admin/visitors', adminVisitorRouter);
+app.use('/api/admin/connections', adminVisitorConnectionRouter);
+app.use('/api/public/visitors', publicVisitorRouter);
 
 app.use((request, response) => {
   response.status(404).json({ message: 'Route not found' });

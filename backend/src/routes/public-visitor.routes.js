@@ -1,0 +1,1 @@
+import { Router } from 'express';import { identifyVisitor } from '../controllers/public-visitor.controller.js';import { publicConfirmRateLimit } from '../middleware/security.middleware.js';const router=Router();router.post('/identify',publicConfirmRateLimit,identifyVisitor);export default router;

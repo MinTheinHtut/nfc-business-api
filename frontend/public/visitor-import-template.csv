@@ -1,0 +1,4 @@
+visitor_code,full_name,company_name,job_title,email,phone,preferred_language
+VIS001,Somchai Prasert,ABC Manufacturing,Production Manager,somchai@example.com,+66000000001,th
+VIS002,Taro Yamada,Yamada Industries,Director,taro@example.jp,,ja
+VIS003,John Smith,Global Manufacturing,Manager,john@example.com,,en

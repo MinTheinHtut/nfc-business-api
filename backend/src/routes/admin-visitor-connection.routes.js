@@ -1,0 +1,2 @@
+import { Router } from 'express';import { exportVisitorConnections,listVisitorConnections,updateVisitorConnection } from '../controllers/admin-visitor-connection.controller.js';import { requireAdmin,requireAuth } from '../middleware/auth.middleware.js';
+const router=Router();router.use(requireAuth,requireAdmin);router.get('/export.csv',exportVisitorConnections);router.get('/',listVisitorConnections);router.put('/:id',updateVisitorConnection);export default router;
