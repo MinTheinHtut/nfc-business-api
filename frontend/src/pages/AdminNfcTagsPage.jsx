@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { deleteAdminNfcTag, getAdminCompanies, getAdminNfcTags, saveAdminNfcTag } from '../api.js';
 import AdminHeader from '../components/AdminHeader.jsx';
 import { useAuth } from '../AuthContext.jsx';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 const emptyForm = { id: null, tag_code: '', company_id: '', is_active: true, regenerate_token: false };
 
 export default function AdminNfcTagsPage() {
-  const { csrfToken } = useAuth();
+  const { csrfToken } = useAuth(); const { t } = useI18n();
   const [tags, setTags] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -87,7 +88,7 @@ export default function AdminNfcTagsPage() {
       setCopiedId(tag.id);
       window.setTimeout(() => setCopiedId(null), 1800);
     } catch {
-      setMessage('Could not access the clipboard. Select and copy the URL manually.');
+      setMessage(t('nfc.clipboardError'));
     }
   }
 
@@ -99,7 +100,7 @@ export default function AdminNfcTagsPage() {
       await deleteAdminNfcTag(tag.id, csrfToken);
       if (form.id === tag.id) setForm(emptyForm);
       setPendingDelete(null);
-      setNotice(`NFC tag ${tag.tag_code} was deleted. Saved connections were preserved.`);
+      setNotice(t('nfc.deleted',{ code:tag.tag_code }));
       await loadData();
     } catch (error) {
       setMessage(error.message);
@@ -112,77 +113,68 @@ export default function AdminNfcTagsPage() {
     <div className="admin-page">
       <AdminHeader />
       <main className="admin-content">
-        <div className="page-heading"><div><span className="eyebrow">Organizer</span><h1>NFC tags</h1><p>Link physical tags to company profiles and manage their public URLs.</p></div></div>
+        <div className="page-heading"><div><span className="eyebrow">{t('common.organizer')}</span><h1>{t('nfc.title')}</h1><p>{t('nfc.intro')}</p></div></div>
         <form className="nfc-form panel" onSubmit={submit}>
           <div className="form-title">
-            <h2>{form.id ? 'Edit NFC tag' : 'Create NFC tag'}</h2>
-            <p>The generated URL can be written manually to a physical NFC tag.</p>
+            <h2>{t(form.id ? 'nfc.edit' : 'nfc.create')}</h2><p>{t('nfc.generatedUrl')}</p>
           </div>
           {message && <div className="error-message form-wide" role="alert">{message}</div>}
           {notice && <div className="success-message form-wide motion-feedback" role="status">{notice}</div>}
           <div className="form-field">
-            <label htmlFor="tag_code">Tag Code *</label>
+            <label htmlFor="tag_code">{t('nfc.tagCode')} *</label>
             <input id="tag_code" name="tag_code" value={form.tag_code} onChange={updateField} required aria-invalid={Boolean(errors.tag_code)} />
             {errors.tag_code && <small className="field-error">{errors.tag_code}</small>}
           </div>
           <div className="form-field">
-            <label htmlFor="company_id">Company *</label>
+            <label htmlFor="company_id">{t('common.company')} *</label>
             <select id="company_id" name="company_id" value={form.company_id} onChange={updateField} required aria-invalid={Boolean(errors.company_id)}>
-              <option value="">Select a company</option>
+              <option value="">{t('nfc.selectCompany')}</option>
               {companies.map((company) => <option value={company.id} key={company.id}>{company.company_name} ({company.company_code})</option>)}
             </select>
             {errors.company_id && <small className="field-error">{errors.company_id}</small>}
           </div>
           {form.id && (
             <div className="nfc-options form-wide">
-              <label className="checkbox"><input name="is_active" type="checkbox" checked={form.is_active} onChange={updateField} /> Tag is active</label>
-              <label className="checkbox"><input name="regenerate_token" type="checkbox" checked={form.regenerate_token} onChange={updateField} /> Generate a new public token</label>
+              <label className="checkbox"><input name="is_active" type="checkbox" checked={form.is_active} onChange={updateField} /> {t('nfc.tagActive')}</label><label className="checkbox"><input name="regenerate_token" type="checkbox" checked={form.regenerate_token} onChange={updateField} /> {t('nfc.regenerate')}</label>
             </div>
           )}
           <div className="form-actions form-wide">
-            {form.id && <button className="secondary-button" type="button" onClick={() => setForm(emptyForm)}>Cancel edit</button>}
-            <button className="primary-button compact" type="submit" disabled={submitting}>{submitting ? 'Saving…' : form.id ? 'Save NFC tag' : 'Create NFC tag'}</button>
+            {form.id && <button className="secondary-button" type="button" onClick={() => setForm(emptyForm)}>{t('common.cancel')}</button>}
+            <button className="primary-button compact" type="submit" disabled={submitting}>{t(submitting?'common.saving':form.id?'nfc.save':'nfc.create')}</button>
           </div>
         </form>
 
         <section className="nfc-list" aria-labelledby="nfc-list-title">
-          <h2 id="nfc-list-title">Tag links</h2>
-          <p>Open a URL to verify the same profile visitors receive from an NFC tap.</p>
-          {loading ? <div className="panel" role="status">Loading NFC tags…</div> : (
+          <h2 id="nfc-list-title">{t('nfc.links')}</h2><p>{t('nfc.verify')}</p>
+          {loading ? <div className="panel" role="status">{t('nfc.loading')}</div> : (
             <div className="nfc-grid">
               {tags.map((tag) => (
                 <article className="nfc-card" key={tag.id}>
                   <div className="nfc-card-heading">
                     <div><strong>{tag.company_name}</strong><span>{tag.company_code}</span></div>
-                    <span className={`badge ${tag.is_active ? 'active' : 'inactive'}`}>{tag.is_active ? 'Active' : 'Inactive'}</span>
+                    <span className={`badge ${tag.is_active ? 'active' : 'inactive'}`}>{t(tag.is_active?'common.active':'common.inactive')}</span>
                   </div>
                   <dl className="nfc-details">
-                    <div><dt>Tag</dt><dd>{tag.tag_code}</dd></div>
-                    <div><dt>Public token</dt><dd>{tag.public_token}</dd></div>
+                    <div><dt>{t('nfc.tag')}</dt><dd>{tag.tag_code}</dd></div><div><dt>{t('nfc.publicToken')}</dt><dd>{tag.public_token}</dd></div>
                   </dl>
-                  <label htmlFor={`url-${tag.id}`}>NFC URL</label>
+                  <label htmlFor={`url-${tag.id}`}>{t('nfc.url')}</label>
                   <input id={`url-${tag.id}`} value={nfcUrl(tag)} readOnly onFocus={(event) => event.target.select()} />
                   <div className="action-row">
-                    <a className="primary-link" href={`/company/${encodeURIComponent(tag.public_token)}`} target="_blank" rel="noreferrer">Open</a>
-                    <button className="secondary-button" type="button" onClick={() => copyUrl(tag)}>{copiedId === tag.id ? 'URL copied.' : 'Copy URL'}</button>
-                    <button className="secondary-button" type="button" onClick={() => editTag(tag)}>Edit</button>
-                    <button className="link-button danger" type="button" onClick={() => setPendingDelete(tag)}>Delete</button>
+                    <a className="primary-link" href={`/company/${encodeURIComponent(tag.public_token)}`} target="_blank" rel="noreferrer">{t('common.open')}</a><button className="secondary-button" type="button" onClick={() => copyUrl(tag)}>{t(copiedId===tag.id?'nfc.copied':'common.copyUrl')}</button><button className="secondary-button" type="button" onClick={() => editTag(tag)}>{t('common.edit')}</button><button className="link-button danger" type="button" onClick={() => setPendingDelete(tag)}>{t('common.delete')}</button>
                   </div>
                 </article>
               ))}
-              {!tags.length && <div className="panel">No NFC tags yet.</div>}
+              {!tags.length && <div className="panel">{t('nfc.none')}</div>}
             </div>
           )}
         </section>
       </main>
       {pendingDelete && <div className="dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !deletingId) setPendingDelete(null); }}>
         <section className="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-tag-title" aria-describedby="delete-tag-description">
-          <span className="eyebrow">Permanent action</span>
-          <h2 id="delete-tag-title">Delete NFC tag?</h2>
-          <p id="delete-tag-description"><strong>{pendingDelete.tag_code}</strong> will stop opening its public company profile. Existing saved connections will be preserved.</p>
+          <span className="eyebrow">{t('nfc.permanent')}</span><h2 id="delete-tag-title">{t('nfc.deleteTitle')}</h2><p id="delete-tag-description">{t('nfc.deleteDescription',{code:pendingDelete.tag_code})}</p>
           <div className="dialog-actions">
-            <button className="secondary-button" type="button" onClick={() => setPendingDelete(null)} disabled={Boolean(deletingId)}>Cancel</button>
-            <button ref={deleteButtonRef} className="primary-button danger-action" type="button" onClick={() => deleteTag(pendingDelete)} disabled={Boolean(deletingId)}>{deletingId ? 'Deleting…' : 'Delete tag'}</button>
+            <button className="secondary-button" type="button" onClick={() => setPendingDelete(null)} disabled={Boolean(deletingId)}>{t('common.cancel')}</button>
+            <button ref={deleteButtonRef} className="primary-button danger-action" type="button" onClick={() => deleteTag(pendingDelete)} disabled={Boolean(deletingId)}>{t(deletingId?'common.deleting':'nfc.deleteTag')}</button>
           </div>
         </section>
       </div>}
