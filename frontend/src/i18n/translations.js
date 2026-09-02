@@ -56,4 +56,7 @@ th.visitors={title:'ผู้เข้าชม',add:'เพิ่มผู้�
 th.connectionStatus={interested:'สนใจ',contacted:'ติดต่อแล้ว',follow_up:'ติดตามผล',completed:'เสร็จสิ้น',not_interested:'ไม่สนใจ'};
 ja.visitors={title:'来場者',add:'来場者を追加',edit:'来場者を編集',import:'来場者をインポート',code:'来場者コード',fullName:'氏名',company:'来場者の会社',jobTitle:'役職',language:'希望言語',notes:'メモ',identify:'来場者を確認',enterCode:'来場者コードを入力',continue:'続ける',connect:'接続',connectedAs:'{name}として接続',success:'接続しました',already:'接続済み',export:'CSVをエクスポート',search:'来場者を検索',none:'来場者が見つかりません'};
 ja.connectionStatus={interested:'興味あり',contacted:'連絡済み',follow_up:'フォローアップ',completed:'完了',not_interested:'興味なし'};
+Object.assign(en.companies,{created:'Company created',nfcCreated:'NFC tag created automatically',publicUrl:'Public URL',copyNfcUrl:'Copy NFC URL',openProfile:'Open profile',viewNfcTags:'View NFC tags',backToCompanies:'Back to Companies'});
+Object.assign(th.companies,{created:'สร้างบริษัทแล้ว',nfcCreated:'สร้างแท็ก NFC อัตโนมัติแล้ว',publicUrl:'URL สาธารณะ',copyNfcUrl:'คัดลอก URL ของ NFC',openProfile:'เปิดโปรไฟล์',viewNfcTags:'ดูแท็ก NFC',backToCompanies:'กลับไปยังบริษัท'});
+Object.assign(ja.companies,{created:'企業を作成しました',nfcCreated:'NFCタグを自動作成しました',publicUrl:'公開URL',copyNfcUrl:'NFC URLをコピー',openProfile:'プロフィールを開く',viewNfcTags:'NFCタグを見る',backToCompanies:'企業一覧に戻る'});
 export const translations = { en, th, ja };

@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyCompanyImport } from '../src/controllers/admin-company-import.controller.js';
 import { createInitialNfcTag } from '../src/utils/initial-nfc-tag.js';
+import { createCompanyWithInitialNfcTag } from '../src/services/company-creation.service.js';
+import { readFile } from 'node:fs/promises';
 
 function fakeConnection({ failTag = false } = {}) {
   let nextCompanyId = 100; const companies = []; const tags = []; const updates = [];
@@ -30,6 +32,10 @@ test('two new companies receive different tokens', async () => {
   assert.notEqual(first.public_token, second.public_token); assert.equal(connection.tags.length, 2);
 });
 
+test('shared company creation creates exactly one company and one initial tag',async()=>{const connection=fakeConnection();const result=await createCompanyWithInitialNfcTag(connection,{fields:['company_code','company_name'],data:{company_code:'SHARED',company_name:'Shared Company'},companyCode:'SHARED'});assert.equal(connection.companies.length,1);assert.equal(connection.tags.length,1);assert.equal(result.nfcTag.company_id,result.companyId)});
+
+test('shared company creation propagates NFC failure for caller rollback',async()=>{const connection=fakeConnection({failTag:true});await assert.rejects(()=>createCompanyWithInitialNfcTag(connection,{fields:['company_code','company_name'],data:{company_code:'FAIL',company_name:'Fail Company'},companyCode:'FAIL'}),/tag insert failed/);assert.equal(connection.companies.length,1);assert.equal(connection.tags.length,0)});
+
 test('tag failure rejects the company creation operation for transaction rollback', async () => {
   await assert.rejects(() => createInitialNfcTag(fakeConnection({ failTag:true }), 42, 'FAILCO'), /tag insert failed/);
 });
@@ -51,3 +57,5 @@ test('re-imported unchanged companies and companies with multiple tags remain un
   const result = await applyCompanyImport({ rows }, connection);
   assert.deepEqual(result, { created:0, updated:0, nfcTagsGenerated:0 }); assert.equal(connection.tags.length, 0); assert.equal(connection.updates.length, 0);
 });
+
+test('manual create owns a transaction around the shared company and NFC service',async()=>{const source=await readFile(new URL('../src/controllers/admin-company.controller.js',import.meta.url),'utf8');const begin=source.indexOf('beginTransaction');const create=source.indexOf('createCompanyWithInitialNfcTag',source.indexOf('export async function createCompany'));const commit=source.indexOf('connection.commit',create);const rollback=source.indexOf('connection.rollback',commit);assert.ok(begin>-1&&begin<create&&create<commit&&commit<rollback)});

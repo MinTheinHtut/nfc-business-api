@@ -2,7 +2,7 @@ import multer from 'multer';
 import pool from '../config/database.js';
 import { analyzeCompanyImport, IMPORT_EXTENSIONS, MAX_IMPORT_BYTES, parseCompanyWorkbook, publicImportResult } from '../utils/company-import.js';
 import path from 'node:path';
-import { createInitialNfcTag } from '../utils/initial-nfc-tag.js';
+import { createCompanyWithInitialNfcTag } from '../services/company-creation.service.js';
 
 const spreadsheetMimeTypes = new Set(['text/csv','application/csv','text/plain','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/octet-stream','application/zip']);
 export const companyImportUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_IMPORT_BYTES, files: 1 }, fileFilter(request, file, callback) { const extension = path.extname(file.originalname || '').toLowerCase(); if (!IMPORT_EXTENSIONS.has(extension) || (file.mimetype && !spreadsheetMimeTypes.has(file.mimetype))) return callback(Object.assign(new Error('Use a .csv or .xlsx file.'), { status: 400 })); callback(null, true); } }).single('file');
@@ -22,8 +22,7 @@ export async function applyCompanyImport(analysis, connection) {
     if (row.action === 'create') {
       const fields = ['company_code','company_name',...row.present.filter((field) => !['company_code','company_name'].includes(field))];
       const uniqueFields = [...new Set(fields)]; if (!uniqueFields.includes('is_active')) { uniqueFields.push('is_active'); row.data.is_active = 1; }
-      const [companyResult] = await connection.execute(`INSERT INTO companies (${uniqueFields.join(',')}) VALUES (${uniqueFields.map(() => '?').join(',')})`, uniqueFields.map((field) => row.data[field] ?? null));
-      await createInitialNfcTag(connection, companyResult.insertId, row.companyCode);
+      await createCompanyWithInitialNfcTag(connection, { fields: uniqueFields, data: row.data, companyCode: row.companyCode });
       created += 1; nfcTagsGenerated += 1;
     } else if (Object.keys(row.changes).length) {
       const fields = Object.keys(row.changes); await connection.execute(`UPDATE companies SET ${fields.map((field) => `${field} = ?`).join(', ')} WHERE company_code = ?`, [...fields.map((field) => row.data[field]), row.companyCode]); updated += 1;

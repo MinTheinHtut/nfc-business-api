@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-import { createInitialNfcTag } from '../utils/initial-nfc-tag.js';
+import { createCompanyWithInitialNfcTag } from '../services/company-creation.service.js';
 
 const companyFields = [
   'company_name', 'company_code', 'description', 'industry', 'country',
@@ -101,14 +101,11 @@ export async function createCompany(request, response, next) {
       const [[existing]] = await connection.execute('SELECT id FROM companies WHERE company_code = ?', [candidate]);
       if (!existing) { company.company_code = candidate; break; }
     }
-    const values = companyFields.map((field) => company[field]);
-    const [result] = await connection.execute(
-      `INSERT INTO companies (${companyFields.join(', ')}) VALUES (${companyFields.map(() => '?').join(', ')})`,
-      values,
-    );
-    const nfcTag = await createInitialNfcTag(connection, result.insertId, company.company_code);
+    const { companyId, nfcTag } = await createCompanyWithInitialNfcTag(connection, { fields: companyFields, data: company, companyCode: company.company_code });
     await connection.commit();
-    response.status(201).json({ id: result.insertId, company_code: company.company_code, tag_code: nfcTag.tag_code, public_token: nfcTag.public_token, nfc_tag: nfcTag, message: 'Company created successfully. NFC tag generated automatically.' });
+    const publicUrl = `${(process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '')}/company/${encodeURIComponent(nfcTag.public_token)}`;
+    const nfcTagResponse = { ...nfcTag, public_url: publicUrl };
+    response.status(201).json({ id: companyId, company_code: company.company_code, tag_code: nfcTag.tag_code, public_token: nfcTag.public_token, nfc_tag: nfcTagResponse, company: { id: companyId, company_code: company.company_code, company_name: company.company_name }, nfcTag: nfcTagResponse, message: 'Company created successfully. NFC tag generated automatically.' });
   } catch (error) {
     await connection.rollback();
     if (error.code === 'ER_DUP_ENTRY') {
