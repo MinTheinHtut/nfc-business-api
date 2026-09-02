@@ -7,6 +7,7 @@ import { I18nProvider } from './i18n/I18nContext.jsx';
 import './styles.css';
 import './i18n/i18n.css';
 import './visitor.css';
+import './mobile-polish.css';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
