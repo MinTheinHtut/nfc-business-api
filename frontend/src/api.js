@@ -24,6 +24,7 @@ export const getContact = (id) => apiRequest(`/contacts/${encodeURIComponent(id)
 export const getAdminDashboard = () => apiRequest('/admin/dashboard');
 export const getAdminConfirmations = () => apiRequest('/admin/confirmations');
 export const getAdminExhibitors = () => apiRequest('/admin/exhibitors');
+export const getAdminExhibitor = (id) => apiRequest(`/admin/exhibitors/${encodeURIComponent(id)}`);
 export const getAdminCompanies = () => apiRequest('/admin/companies');
 export const getAdminCompany = (id) => apiRequest(`/admin/companies/${encodeURIComponent(id)}`);
 export const getAdminNfcTags = () => apiRequest('/admin/nfc-tags');

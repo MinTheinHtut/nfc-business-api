@@ -37,6 +37,7 @@ export async function getCompanyByToken(request, response, next) {
 export async function confirmCompanyContact(request, response, next) {
   const token = typeof request.params.token === 'string' ? request.params.token.trim() : '';
   if (!token) return response.status(400).json({ message: 'Invalid NFC link' });
+  if (request.session.user.role !== 'exhibitor') return response.status(403).json({ message: 'Exhibitor access required' });
 
   try {
     const [[company]] = await pool.execute(
