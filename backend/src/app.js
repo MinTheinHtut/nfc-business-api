@@ -85,8 +85,9 @@ app.use('/api/contacts', contactRouter);
 app.use('/api/admin/dashboard', adminDashboardRouter);
 app.use('/api/admin/exhibitors', adminExhibitorRouter);
 app.use('/api/admin/confirmations', adminConfirmationRouter);
+app.use('/api/admin/connections', adminConfirmationRouter);
 app.use('/api/admin/visitors', adminVisitorRouter);
-app.use('/api/admin/connections', adminVisitorConnectionRouter);
+app.use('/api/admin/visitor-connections', adminVisitorConnectionRouter);
 app.use('/api/public/visitors', publicVisitorRouter);
 
 app.use((request, response) => {

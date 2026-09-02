@@ -22,7 +22,8 @@ export const confirmCompany = (token) => apiRequest(`/public/companies/${encodeU
 export const getConfirmedContacts = () => apiRequest('/contacts');
 export const getContact = (id) => apiRequest(`/contacts/${encodeURIComponent(id)}`);
 export const getAdminDashboard = () => apiRequest('/admin/dashboard');
-export const getAdminConfirmations = () => apiRequest('/admin/confirmations');
+export const getAdminConfirmations = () => apiRequest('/admin/connections');
+export async function downloadSavedConnectionsCsv(search=''){const query=new URLSearchParams();if(search.trim())query.set('search',search.trim());const suffix=query.size?`?${query}`:'';const response=await fetch(`${API_URL}/admin/connections/export.csv${suffix}`,{credentials:'include',cache:'no-store'});if(!response.ok)throw Object.assign(new Error('Export failed'),{status:response.status});return response.blob()}
 export const getAdminExhibitors = () => apiRequest('/admin/exhibitors');
 export const getAdminExhibitor = (id) => apiRequest(`/admin/exhibitors/${encodeURIComponent(id)}`);
 export const getAdminCompanies = () => apiRequest('/admin/companies');
@@ -44,6 +45,6 @@ export function saveAdminVisitor(visitor){return apiRequest(visitor.id?`/admin/v
 export const deactivateAdminVisitor = (id) => apiRequest(`/admin/visitors/${encodeURIComponent(id)}`,{method:'DELETE'});
 function visitorImportRequest(action,file){const body=new FormData();body.append('file',file);return apiRequest(`/admin/visitors/import/${action}`,{method:'POST',body})}
 export const previewVisitorImport=(file)=>visitorImportRequest('preview',file);export const commitVisitorImport=(file)=>visitorImportRequest('commit',file);
-export const getAdminVisitorConnections = (filters={}) => apiRequest(`/admin/connections?${new URLSearchParams(Object.entries(filters).filter(([,value])=>value!==''&&value!=null))}`);
-export const updateAdminVisitorConnection = (id, values) => apiRequest(`/admin/connections/${encodeURIComponent(id)}`,{method:'PUT',body:JSON.stringify(values)});
-export async function downloadConnectionsCsv(filters={}){const query=new URLSearchParams(Object.entries(filters).filter(([,value])=>value!==''&&value!=null));const response=await fetch(`${API_URL}/admin/connections/export.csv?${query}`,{credentials:'include',cache:'no-store'});if(!response.ok)throw Object.assign(new Error('Export failed'),{status:response.status});return response.blob()}
+export const getAdminVisitorConnections = (filters={}) => apiRequest(`/admin/visitor-connections?${new URLSearchParams(Object.entries(filters).filter(([,value])=>value!==''&&value!=null))}`);
+export const updateAdminVisitorConnection = (id, values) => apiRequest(`/admin/visitor-connections/${encodeURIComponent(id)}`,{method:'PUT',body:JSON.stringify(values)});
+export async function downloadConnectionsCsv(filters={}){const query=new URLSearchParams(Object.entries(filters).filter(([,value])=>value!==''&&value!=null));const response=await fetch(`${API_URL}/admin/visitor-connections/export.csv?${query}`,{credentials:'include',cache:'no-store'});if(!response.ok)throw Object.assign(new Error('Export failed'),{status:response.status});return response.blob()}

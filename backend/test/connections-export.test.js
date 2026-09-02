@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+import { savedConnectionsToCsv } from '../src/utils/saved-connection-export.js';
+
+test('saved connection CSV is UTF-8, readable, quoted, and formula-safe',()=>{const csv=savedConnectionsToCsv([{connection_id:1,exhibitor_id:2,exhibitor_username:'demo',exhibitor_name:'สมชาย',company_id:3,company_code:'JP-1',company_name:'会社, "東京"',connected_at_export:'2026-09-02 17:42:00',company_email:'=unsafe'}]);assert.ok(csv.startsWith('\uFEFF'));assert.match(csv,/"Exhibitor Username"/);assert.match(csv,/สมชาย/);assert.match(csv,/"会社, ""東京"""/);assert.match(csv,/"'\=unsafe"/);assert.match(csv,/2026-09-02 17:42:00/)});
+test('admin connection history reads all company_saves without CRM filters or limits',async()=>{const source=await readFile(new URL('../src/controllers/admin-confirmation.controller.js',import.meta.url),'utf8');assert.match(source,/FROM company_saves cs/);assert.match(source,/JOIN users u/);assert.match(source,/JOIN companies c/);assert.match(source,/ORDER BY cs\.saved_at DESC, cs\.id DESC/);assert.doesNotMatch(source,/visitor_company_connections|status IN|LIMIT/)});
+test('connection list and export share the same SQL query builder',async()=>{const source=await readFile(new URL('../src/controllers/admin-confirmation.controller.js',import.meta.url),'utf8');assert.equal((source.match(/connectionQuery\(/g)||[]).length,3);assert.match(source,/exportConfirmationsCsv/)});
+test('admin connections route resolves to company_saves and visitor records are explicitly named',async()=>{const source=await readFile(new URL('../src/app.js',import.meta.url),'utf8');assert.match(source,/api\/admin\/connections', adminConfirmationRouter/);assert.match(source,/api\/admin\/visitor-connections', adminVisitorConnectionRouter/)});
